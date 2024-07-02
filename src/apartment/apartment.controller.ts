@@ -78,21 +78,52 @@ class ApartmentController {
         }
     }
 
-    getRecommendations = async (req, res) => {
-        try{
-            const apartmentType = req.params.type;
-            console.log(apartmentType)
-            const userPrompt = req.body.prompt;
-            const recommendations = await this.apartmentService.getRecommendations(apartmentType, userPrompt);
-            if (!recommendations) {
-                res.status(404).json({ message: 'No recommendations found' });
+    getApartmentByLink = async (req, res) => {
+        try {
+            const link = req.params.link;
+            const apartment = await this.apartmentService.getApartmentByLink(link);
+            if (!apartment) {
+                res.status(404).json({ message: 'Apartment not found' });
                 return;
-            }
-            res.status(200).json(recommendations);
+              }
+            res.status(200).json(apartment);
         }
         catch{
             res.status(500).json({error: 'Internal server error'});
         }
+    }
+
+    // getRecommendations = async (req, res) => {
+    //     try{
+    //         const apartmentType = req.params.type;
+    //         console.log(apartmentType)
+    //         const userPrompt = req.body.prompt;
+    //         const recommendations = await this.apartmentService.getRecommendations(apartmentType, userPrompt);
+    //         if (!recommendations) {
+    //             res.status(404).json({ message: 'No recommendations found' });
+    //             return;
+    //         }
+    //         res.status(200).json(recommendations);
+    //     }
+    //     catch{
+    //         res.status(500).json({error: 'Internal server error'});
+    //     }
+    // }
+
+    generateEmbedding = async (req, res) => {
+        // try{
+            const prompt = req.body.prompt;
+            const classify = req.body.classify;
+            const embedding = await this.apartmentService.generateEmbedding(prompt, classify);
+            if (!embedding) {
+                res.status(404).json({ message: 'No embedding found' });
+                return;
+            }
+            res.status(200).json(embedding);
+        // }
+        // catch{
+        //     res.status(500).json({error: 'Internal server error'}); 
+        // }
     }
 }
 
