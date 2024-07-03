@@ -156,50 +156,169 @@ class ApartmentService {
     // }
 
 
-    async generateEmbedding(prompt: string, classify: string): Promise<{ link: string; comment: string }[]> {
+    // async generateEmbedding(prompt: string, classify: string): Promise<any[]> {
+    //     const embeddedPrompt = await new GoogleGenerativeAIEmbeddings().embedQuery(prompt);
+        
+    //     console.log("Embedded Prompt:", embeddedPrompt); 
+        
+    //     let promptResponse = await index.query({
+    //         vector: embeddedPrompt,
+    //         topK: 100,
+    //         includeMetadata: true,
+    //         filter: {
+    //             type: classify 
+    //         }
+    //     });
+    
+    //     console.log("Prompt Response:", JSON.stringify(promptResponse, null, 2)); // Log the prompt response
+    
+    //     const results = promptResponse.matches.map((match) => {
+    //         if (match.metadata) {
+    //             const { site, lastChecked, type, ...rest } = match.metadata;
+    //             return rest;
+    //         }
+    //         return null; // or return an empty object {} or any other default value
+    //     });
+    
+    //     return results;
+    // }
+    async generateEmbedding(prompt: string, classify: string, minPrice: number, maxPrice: number): Promise<any[]> {
         const embeddedPrompt = await new GoogleGenerativeAIEmbeddings().embedQuery(prompt);
         
-        console.log("Embedded Prompt:", embeddedPrompt); // Log the embedded prompt
+        console.log("Embedded Prompt:", embeddedPrompt); 
         
         let promptResponse = await index.query({
             vector: embeddedPrompt,
-            topK: 5,
+            topK: 100, // Retrieve more vectors initially
             includeMetadata: true,
             filter: {
-                type: classify // Assuming that 'type' is a field in your metadata and 'classify' is the type you want to filter by
+                type: classify 
             }
         });
-
+    
         console.log("Prompt Response:", JSON.stringify(promptResponse, null, 2)); // Log the prompt response
-
-        const results = await Promise.all(promptResponse.matches.map(async (match) => {
-            if (!match.metadata || !match.metadata.link) {
-                return { link: '', comment: '' };
-            }
-
-            const link = match.metadata.link;
-            const concatenatedResponse = Object.values(match.metadata).join(' ');
-
-            // console.log("Concatenated Response:", concatenatedResponse);
-            console.log(match.metadata) 
-
-            const llm = new LangchainOpenAI({
-                apiKey: process.env.OPENAI_API_KEY,
+    
+        const results = promptResponse.matches
+            .filter((match) => match.metadata && Number(match.metadata.price) >= minPrice && Number(match.metadata.price) <= maxPrice)
+            .slice(0, 20) // Take only the first 20 matches after filtering
+            .map((match) => {
+                if (!match.metadata) {
+                    return null;
+                }
+                const { site, lastChecked, type, ...rest } = match.metadata;
+                return rest;
             });
-
-            const chain = loadQAStuffChain(llm);
-            const result = await chain.call({
-                input_documents: [new Document({ pageContent: match.metadata })], // Pass match.metadata directly
-                question: prompt,
-            });
-
-            console.log("Result:", result); // Log the result from Langchain
-
-            return { link: String(link), comment: String(result.text) }; // Ensure link and comment are converted to strings
-        }));
-
+    
         return results;
     }
+
+    async getFineTextEmbedding(prompt: string): Promise<string> {
+        const response = await openai.chat.completions.create({
+                    model: 'gpt-4o',
+                    messages: [
+                        {
+                            role: 'system',
+                            content: `
+                                Вы — профессионал в переписывании абсолютно любых абстрактных и не абстрактных запросов по поиску квартир в запрос, который будет идеально понятен векторной базе данных Pinecone.
+                                Ты должен написать такой запрос, который выдаст максимально приближенные значения по векторной базе данных квартир. Например: "Квартиры возле КБТУ" перефразируется в "Квартиры возле Толе Би 59", "Хорошие квартиры" перефразируется в "Квартиры с  Ремонт: Современный ремонт и видом на город", "Квартиры с хорошим ремонтом" перефразируется в "Квартиры с  "Ремонт: Современный ремонт"", "Дешевые квартиры возле метро" перефразируется в "Квартиры ценой до 300000 возле станции метро", "Квартиры в Ауэзовском районе" перефразируется в "Квартиры в Ауэзовским районе", "Квартиры в Бостандыкском районе" перефразируется в "Квартиры в Бостандыкском районе". "Квартиры с стиральной машиной и стульями" в "Квартиры с Стулья: есть, Стулья: есть", "Большая квартира" в "Квартира с площадью более 100 м²", "Квартиры трехкомнатные" в "Квартиры с Комнатность: 2-комн.", "Квартиры с балконом" в "Квартиры с Балкон: есть", "Квартиры с балконом и стиральной машиной" в "Квартиры с Балкон: есть, Стиральная машина: есть", "Квартиры с балконом и стиральной машиной и стульями" в "Квартиры с Балкон: есть, Стиральная машина: есть, Стулья: есть".
+                                Ответ должен быть строго в формате JSON в виде переписанного запроса или такого же, если запрос уже идеален.
+                                JSON массив должен выглядеть следующим образом:
+                                {
+                                    
+                                        "newPrompt": "Сам запрос, который идеально подходит для векторной базы данных Pinecone"
+                                    
+                                }
+                                Данные о каждой квартире в векторной базе данных Pinecone представлены в следующем формате:
+                                {
+                                    characteristics: [ "Код объекта: 10731980", "Комнатность: 2-комн.", "Общая площадь: 71 м²", "Ремонт: Современный ремонт", "Количество спален: 2", "Санузел: Раздельный", "Подключённые сервисы: телефон, интернет, кабельное телевидение", "Материал окон: Пластиковые", "Диван: есть", "Телевизор: есть", "Плита: Отсутствует", "Посудомоечная машина: нет", "Стиральная машина: нет", "Год постройки: 2020", "Этаж / Этажность: 5 из 10", "Стены: Монолитные", "Двор: открытый двор", "Парковка: наземный паркинг" ] // Характеристики квартиры
+                                    description: "Описание квартиры" // Описание квартиры
+                                    floor: "2-комн. квартира, 71м², 5/10 этаж" // Этаж квартиры
+                                    lastChecked: "Tue Jul 02 2024 21:22:46 GMT+0500 (West Kazakhstan Time)" // Дата последней проверки
+                                    link: "https://almaty.etagi.com/realty_rent/10731980/" // Ссылка на квартиру
+                                    location: "р-н Наурызбайский, ул. Жунисова, 4\n к18 (13.2 км до центра)" // Расположение квартиры
+                                    price: 250000 // Цена квартиры
+                                    site: "etagi" // Сайт, на котором находится квартира
+                                    type: "rent" // Тип квартиры (аренда, продажа, посуточно)
+                                }
+                            `
+                        },
+                        {
+                            role: 'user',
+                            content: `
+                            Запрос пользователя: ${prompt}
+                            `
+                        }
+                    ],
+                    stream: false
+                });
+
+        let messageContent = response.choices[0]?.message?.content || null;
+        console.log('Received message content:', messageContent);
+        
+        if (!messageContent) {
+            throw new Error('No content received from OpenAI');
+        }
+        // messageContent = messageContent.replace(/```json|```/g, '').trim();
+        
+        // return JSON.parse(messageContent);
+        return messageContent.trim()
+    }
+
+    async getRecommendations(prompt: string, classify: string, minPrice: number, maxPrice: number): Promise<any[]> {
+        let finePrompt = await this.getFineTextEmbedding(prompt);
+        const firstApartments = await this.generateEmbedding(finePrompt, classify, minPrice, maxPrice);
+        console.log('First apartments:', firstApartments)
+
+        const response = await openai.chat.completions.create({
+                    model: 'gpt-3.5-turbo', //Maybe pomenayu na 4-o
+                    messages: [
+                        {
+                            role: 'system',
+                            content: `
+                                Вы — профессиональный агент по недвижимости, хорошо знакомый с Алматы, который идеально знает расположение абсолютно всего в городе. Тип запроса: ${classify}. Ты должен предоставить от 1 до 20 квартир на твое усмотрение. Если же нет даже близко подходящих под описание квартир, то выводи пустой JSON. На основе предоставленных данных о квартирах и запроса пользователя, создайте JSON-массив, который включает объекты с следующими данными:
+                                link и reason. Ответ должен быть строго в формате JSON массива и не должен включать никакого дополнительного текста.
+                                JSON массив должен выглядеть следующим образом:
+                                [
+                                    {
+                                        "link": "Тут ссылка на квартиру, взятая из поля квартиры link",
+                                        "reason": "Причина выбора этой квартиры, основанная на запросе пользователя и также плюсы и минусы квартиры относительно средних показателей или других квартир"
+                                    }
+                                ]
+                                Данные о каждой квартире представлены в следующем формате:
+                                {
+                                    characteristics: [ "Код объекта: 10731980", "Комнатность: 2-комн.", "Общая площадь: 71 м²", "Ремонт: Современный ремонт", "Количество спален: 2", "Санузел: Раздельный", "Подключённые сервисы: телефон, интернет, кабельное телевидение", "Материал окон: Пластиковые", "Диван: есть", "Телевизор: есть", "Плита: Отсутствует", "Посудомоечная машина: нет", "Стиральная машина: нет", "Год постройки: 2020", "Этаж / Этажность: 5 из 10", "Стены: Монолитные", "Двор: открытый двор", "Парковка: наземный паркинг" ] // Характеристики квартиры JSON
+                                    description: "Описание квартиры" // Описание квартиры
+                                    floor: "2-комн. квартира, 71м², 5/10 этаж" // Этаж квартиры
+                                    lastChecked: "Tue Jul 02 2024 21:22:46 GMT+0500 (West Kazakhstan Time)" // Дата последней проверки
+                                    link: "https://almaty.etagi.com/realty_rent/10731980/" // Ссылка на квартиру
+                                    location: "р-н Наурызбайский, ул. Жунисова, 4\n к18 (13.2 км до центра)" // Расположение квартиры
+                                    price: 250000 // Цена квартиры
+                                    site: "etagi" // Сайт, на котором находится квартира
+                                    type: "rent" // Тип квартиры (аренда, продажа, посуточно)
+                                }
+                            `
+                        },
+                        {
+                            role: 'user',
+                            content: `
+                            Запрос пользователя: ${prompt}
+                            Данные о квартирах: ${JSON.stringify(firstApartments)}
+                            `
+                        }
+                    ],
+                    stream: false
+                });
+        let messageContent = response.choices[0]?.message?.content || null;
+        console.log('Received message content:', messageContent);
+
+        if (!messageContent) {
+            throw new Error('No content received from OpenAI');
+        }
+        messageContent = messageContent.replace(/```json|```/g, '').trim();
+        
+        return JSON.parse(messageContent);
+    }
+    
 
 }
 

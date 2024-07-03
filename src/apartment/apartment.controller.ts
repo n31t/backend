@@ -111,19 +111,84 @@ class ApartmentController {
     // }
 
     generateEmbedding = async (req, res) => {
-        // try{
+        try{
             const prompt = req.body.prompt;
             const classify = req.body.classify;
-            const embedding = await this.apartmentService.generateEmbedding(prompt, classify);
+            let minPrice = req.body.minPrice;
+            let maxPrice = req.body.maxPrice;
+            if(maxPrice < minPrice){
+                res.status(400).json({error: 'maxPrice must be greater than minPrice'});
+                return;
+            }
+            if(minPrice < 0 || maxPrice < 0){
+                res.status(400).json({error: 'Prices must be positive'});
+                return;
+            }
+            if(!maxPrice){
+                maxPrice = 1000000000;
+            }
+            if(!minPrice){
+                minPrice = 0;
+            }
+            const embedding = await this.apartmentService.generateEmbedding(prompt, classify, minPrice, maxPrice);
             if (!embedding) {
                 res.status(404).json({ message: 'No embedding found' });
                 return;
             }
             res.status(200).json(embedding);
-        // }
-        // catch{
-        //     res.status(500).json({error: 'Internal server error'}); 
-        // }
+        }
+        catch{
+            res.status(500).json({error: 'Internal server error'}); 
+        }
+    }
+
+    getFineTextEmbedding = async (req, res) => {
+        try{
+            const prompt = req.body.prompt;
+            const embedding = await this.apartmentService.getFineTextEmbedding(prompt);
+            if (!embedding) {
+                res.status(404).json({ message: 'No embedding found' });
+                return;
+            }
+            res.status(200).json(embedding);
+        }
+        catch{
+            res.status(500).json({error: 'Internal server error'}); 
+        }
+    }
+
+    getRecommendation = async (req, res) => {
+        try{
+            const prompt = req.body.prompt
+            const classify = req.body.classify;
+            let minPrice = req.body.minPrice;
+            let maxPrice = req.body.maxPrice;
+            if(maxPrice < minPrice){
+                res.status(400).json({error: 'maxPrice must be greater than minPrice'});
+                return;
+            }
+            if(minPrice < 0 || maxPrice < 0){
+                res.status(400).json({error: 'Prices must be positive'});
+                return;
+            }
+            if(!maxPrice){
+                maxPrice = 1000000000;
+            }
+            if(!minPrice){
+                minPrice = 0;
+            }
+            const apartments = await this.apartmentService.getRecommendations(prompt, classify, minPrice, maxPrice)
+
+            if(!apartments){
+                res.status(404).json({ message: 'No such apartments' });
+                return;
+            }
+
+            res.status(200).json(apartments)
+        }
+        catch {
+            res.status(500).json({error: 'Internal server error'});
+        }
     }
 }
 

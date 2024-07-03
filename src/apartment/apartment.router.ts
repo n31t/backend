@@ -14,6 +14,9 @@ apartmentRouter.get('/type/daily', apartmentController.getDailyApartments);
 apartmentRouter.get('/link/:link', apartmentController.getApartmentByLink);
 
 // apartmentRouter.get('/recommendations/:type', apartmentController.getRecommendations);
-apartmentRouter.get('/lc/emdedded', apartmentController.generateEmbedding)
+// apartmentRouter.get('/lc/emdedded', apartmentController.generateEmbedding)
+// apartmentRouter.get('/lc/cool', apartmentController.getFineTextEmbedding)
+
+apartmentRouter.get('/lc/reccomendation', apartmentController.getRecommendation)
 
 export default apartmentRouter;
