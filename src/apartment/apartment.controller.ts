@@ -142,20 +142,20 @@ class ApartmentController {
         }
     }
 
-    getFineTextEmbedding = async (req, res) => {
-        try{
-            const prompt = req.body.prompt;
-            const embedding = await this.apartmentService.getFineTextEmbedding(prompt);
-            if (!embedding) {
-                res.status(404).json({ message: 'No embedding found' });
-                return;
-            }
-            res.status(200).json(embedding);
-        }
-        catch{
-            res.status(500).json({error: 'Internal server error'}); 
-        }
-    }
+    // getFineTextEmbedding = async (req, res) => {
+    //     try{
+    //         const prompt = req.body.prompt;
+    //         const embedding = await this.apartmentService.getFineTextEmbedding(prompt);
+    //         if (!embedding) {
+    //             res.status(404).json({ message: 'No embedding found' });
+    //             return;
+    //         }
+    //         res.status(200).json(embedding);
+    //     }
+    //     catch{
+    //         res.status(500).json({error: 'Internal server error'}); 
+    //     }
+    // }
 
     getRecommendation = async (req, res) => {
         try{
@@ -163,6 +163,7 @@ class ApartmentController {
             const classify = req.body.classify;
             let minPrice = req.body.minPrice;
             let maxPrice = req.body.maxPrice;
+            let rooms = req.body.rooms;
             if(maxPrice < minPrice){
                 res.status(400).json({error: 'maxPrice must be greater than minPrice'});
                 return;
@@ -177,7 +178,10 @@ class ApartmentController {
             if(!minPrice){
                 minPrice = 0;
             }
-            const apartments = await this.apartmentService.getRecommendations(prompt, classify, minPrice, maxPrice)
+            if(!rooms){
+                rooms = '';
+            }
+            const apartments = await this.apartmentService.getRecommendations(prompt, classify, minPrice, maxPrice, rooms)
 
             if(!apartments){
                 res.status(404).json({ message: 'No such apartments' });

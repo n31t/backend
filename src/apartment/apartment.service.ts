@@ -212,7 +212,23 @@ class ApartmentService {
         return results;
     }
 
-    async getFineTextEmbedding(prompt: string): Promise<string> {
+    async getFineTextEmbedding(prompt: string, rooms: string): Promise<string> {
+        switch (rooms) {
+            case('1 комн.'):
+                rooms = '1-комн.';
+                break;
+            case('2 комн.'):
+                rooms = '2-комн.';
+                break;
+            case('3 комн.'):
+                rooms = '3-комн.';
+                break;
+            case('4 комн.'):
+                rooms = '4-комн.';
+                break;
+        }
+            
+        const newPrompt = prompt + " " + rooms;
         const response = await openai.chat.completions.create({
                     model: 'gpt-4o',
                     messages: [
@@ -245,7 +261,7 @@ class ApartmentService {
                         {
                             role: 'user',
                             content: `
-                            Запрос пользователя: ${prompt}
+                            Запрос пользователя: ${newPrompt}
                             `
                         }
                     ],
@@ -264,13 +280,14 @@ class ApartmentService {
         return messageContent.trim()
     }
 
-    async getRecommendations(prompt: string, classify: string, minPrice: number, maxPrice: number): Promise<any[]> {
-        let finePrompt = await this.getFineTextEmbedding(prompt);
+    async getRecommendations(prompt: string, classify: string, minPrice: number, maxPrice: number, rooms: string): Promise<any[]> {
+        let finePrompt = await this.getFineTextEmbedding(prompt, rooms);
         const firstApartments = await this.generateEmbedding(finePrompt, classify, minPrice, maxPrice);
         console.log('First apartments:', firstApartments)
 
+        const newPrompt = finePrompt + " " + rooms;
         const response = await openai.chat.completions.create({
-                    model: 'gpt-3.5-turbo', //Maybe pomenayu na 4-o
+                    model: 'gpt-4o', //Maybe pomenayu na 4-o
                     messages: [
                         {
                             role: 'system',
@@ -301,7 +318,7 @@ class ApartmentService {
                         {
                             role: 'user',
                             content: `
-                            Запрос пользователя: ${prompt}
+                            Запрос пользователя: ${newPrompt}
                             Данные о квартирах: ${JSON.stringify(firstApartments)}
                             `
                         }
