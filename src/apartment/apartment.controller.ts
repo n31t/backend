@@ -80,7 +80,7 @@ class ApartmentController {
 
     getApartmentByLink = async (req, res) => {
         try {
-            const link = req.params.link;
+            const link = req.body.link;
             const apartment = await this.apartmentService.getApartmentByLink(link);
             if (!apartment) {
                 res.status(404).json({ message: 'Apartment not found' });

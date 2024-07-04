@@ -10,7 +10,7 @@ const app = express();
 const PORT = process.env.PORT || 3838;
 
 app.use(cors({
-  origin: 'https://nf-hw-backend-4-omega.vercel.app',
+  origin: 'http://localhost:3000',
   methods: ['GET', 'POST','PUT', 'DELETE'],
   allowedHeaders: '*', 
   exposedHeaders: '*',
