@@ -189,7 +189,7 @@ class ApartmentService {
         
         let promptResponse = await index.query({
             vector: embeddedPrompt,
-            topK: 100, // Retrieve more vectors initially
+            topK: 150, // Retrieve more vectors initially
             includeMetadata: true,
             filter: {
                 type: classify 
@@ -200,7 +200,7 @@ class ApartmentService {
     
         const results = promptResponse.matches
             .filter((match) => match.metadata && Number(match.metadata.price) >= minPrice && Number(match.metadata.price) <= maxPrice)
-            .slice(0, 20) // Take only the first 20 matches after filtering
+            .slice(0, 40) // Take only the first 20 matches after filtering
             .map((match) => {
                 if (!match.metadata) {
                     return null;
@@ -214,6 +214,9 @@ class ApartmentService {
 
     async getFineTextEmbedding(prompt: string, rooms: string): Promise<string> {
         switch (rooms) {
+            case('1-4 комн.'):
+                rooms = '1-4 комн.';
+                break;
             case('1 комн.'):
                 rooms = '1-комн.';
                 break;
@@ -292,7 +295,7 @@ class ApartmentService {
                         {
                             role: 'system',
                             content: `
-                                Вы — профессиональный агент по недвижимости, хорошо знакомый с Алматы, который идеально знает расположение абсолютно всего в городе. Тип запроса: ${classify}. Ты должен предоставить от 1 до 20 квартир на твое усмотрение. Если же нет даже близко подходящих под описание квартир, то выводи пустой JSON. На основе предоставленных данных о квартирах и запроса пользователя, создайте JSON-массив, который включает объекты с следующими данными:
+                                Вы — профессиональный агент по недвижимости, хорошо знакомый с Алматы, который идеально знает расположение абсолютно всего в городе. Тип запроса: ${classify}. Ты должен предоставить от 1 до 20 квартир на твое усмотрение. Если же нет даже близко подходящих под описание квартир, то выводи пустой JSON. Если по запросу нет никаких квартир, то можешь предоставить альтернативы, если у них сходится какой-то пункт с запросом или квартира имеет очень низкую цену на метр квадрат.  На основе предоставленных данных о квартирах и запроса пользователя, создайте JSON-массив, который включает объекты с следующими данными:
                                 link и reason. Ответ должен быть строго в формате JSON массива и не должен включать никакого дополнительного текста.
                                 JSON массив должен выглядеть следующим образом:
                                 [
