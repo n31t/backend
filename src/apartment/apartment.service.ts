@@ -10,7 +10,7 @@ const embeddings = new GoogleGenerativeAIEmbeddings({
     model: "embedding-001", // 768 dimensions
 });
 
-const indexName = 'homespark2';
+const indexName = 'homespark3';
 const index = pinecone.index(indexName);
 
 class ApartmentService {
@@ -192,7 +192,8 @@ class ApartmentService {
             topK: 150, // Retrieve more vectors initially
             includeMetadata: true,
             filter: {
-                type: classify 
+                type: classify,
+                price: {"$gte": minPrice, "$lte": maxPrice} // Test var
             }
         });
     
@@ -200,7 +201,7 @@ class ApartmentService {
     
         const results = promptResponse.matches
             .filter((match) => match.metadata && Number(match.metadata.price) >= minPrice && Number(match.metadata.price) <= maxPrice)
-            .slice(0, 40) // Take only the first 20 matches after filtering
+            .slice(0, 40) // Take only the first 40 matches after filtering
             .map((match) => {
                 if (!match.metadata) {
                     return null;
@@ -215,7 +216,7 @@ class ApartmentService {
     async getFineTextEmbedding(prompt: string, rooms: string): Promise<string> {
         switch (rooms) {
             case('1-4 комн.'):
-                rooms = '1-4 комн.';
+                rooms = '';
                 break;
             case('1 комн.'):
                 rooms = '1-комн.';
@@ -288,7 +289,7 @@ class ApartmentService {
         const firstApartments = await this.generateEmbedding(finePrompt, classify, minPrice, maxPrice);
         console.log('First apartments:', firstApartments)
 
-        const newPrompt = finePrompt + " " + rooms;
+        const newPrompt = prompt + " " + rooms;
         const response = await openai.chat.completions.create({
                     model: 'gpt-4o', //Maybe pomenayu na 4-o
                     messages: [
@@ -309,12 +310,9 @@ class ApartmentService {
                                     characteristics: [ "Код объекта: 10731980", "Комнатность: 2-комн.", "Общая площадь: 71 м²", "Ремонт: Современный ремонт", "Количество спален: 2", "Санузел: Раздельный", "Подключённые сервисы: телефон, интернет, кабельное телевидение", "Материал окон: Пластиковые", "Диван: есть", "Телевизор: есть", "Плита: Отсутствует", "Посудомоечная машина: нет", "Стиральная машина: нет", "Год постройки: 2020", "Этаж / Этажность: 5 из 10", "Стены: Монолитные", "Двор: открытый двор", "Парковка: наземный паркинг" ] // Характеристики квартиры JSON
                                     description: "Описание квартиры" // Описание квартиры
                                     floor: "2-комн. квартира, 71м², 5/10 этаж" // Этаж квартиры
-                                    lastChecked: "Tue Jul 02 2024 21:22:46 GMT+0500 (West Kazakhstan Time)" // Дата последней проверки
                                     link: "https://almaty.etagi.com/realty_rent/10731980/" // Ссылка на квартиру
                                     location: "р-н Наурызбайский, ул. Жунисова, 4\n к18 (13.2 км до центра)" // Расположение квартиры
                                     price: 250000 // Цена квартиры
-                                    site: "etagi" // Сайт, на котором находится квартира
-                                    type: "rent" // Тип квартиры (аренда, продажа, посуточно)
                                 }
                             `
                         },
@@ -339,6 +337,38 @@ class ApartmentService {
         return JSON.parse(messageContent);
     }
     
+    getMightLikeApartments = async (prompt: string, classify: string, minPrice: number, maxPrice: number, rooms: string): Promise<any[]> => {
+        switch (rooms) {
+            case('1-4 комн.'):
+                rooms = '';
+                break;
+            case('1 комн.'):
+                rooms = '1-комн.';
+                break;
+            case('2 комн.'):
+                rooms = '2-комн.';
+                break;
+            case('3 комн.'):
+                rooms = '3-комн.';
+                break;
+            case('4 комн.'):
+                rooms = '4-комн.';
+                break;
+        }
+            
+        const newPrompt = prompt + " " + rooms;
+        const apartments = await this.generateEmbedding(newPrompt, classify, minPrice, maxPrice);
+        const results = apartments
+        .slice(0, 30) // Take only the first 30 matches after filtering
+        .map((apartment) => {
+            if (!apartment.link) {
+                return null;
+            }
+            return { link: apartment.link }; // Return only the link property
+        });
+
+        return results;
+    }
 
 }
 

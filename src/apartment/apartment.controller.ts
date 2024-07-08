@@ -194,6 +194,44 @@ class ApartmentController {
             res.status(500).json({error: 'Internal server error'});
         }
     }
+
+    getMightLike = async (req, res) => {
+        try{
+            const prompt = req.body.prompt
+            const classify = req.body.classify;
+            let minPrice = req.body.minPrice;
+            let maxPrice = req.body.maxPrice;
+            let rooms = req.body.rooms;
+            if(maxPrice < minPrice){
+                res.status(400).json({error: 'maxPrice must be greater than minPrice'});
+                return;
+            }
+            if(minPrice < 0 || maxPrice < 0){
+                res.status(400).json({error: 'Prices must be positive'});
+                return;
+            }
+            if(!maxPrice){
+                maxPrice = 1000000000;
+            }
+            if(!minPrice){
+                minPrice = 0;
+            }
+            if(!rooms){
+                rooms = '';
+            }
+            const apartments = await this.apartmentService.getMightLikeApartments(prompt, classify, minPrice, maxPrice, rooms)
+
+            if(!apartments){
+                res.status(404).json({ message: 'No such apartments' });
+                return;
+            }
+
+            res.status(200).json(apartments)
+        }
+        catch {
+            res.status(500).json({error: 'Internal server error'});
+        }
+    }
 }
 
 export default ApartmentController

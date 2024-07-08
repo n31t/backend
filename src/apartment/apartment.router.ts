@@ -18,5 +18,6 @@ apartmentRouter.post('/find/link', apartmentController.getApartmentByLink);
 // apartmentRouter.get('/lc/cool', apartmentController.getFineTextEmbedding)
 
 apartmentRouter.post('/lc/reccomendation', apartmentController.getRecommendation)
+apartmentRouter.post('/lc/mightlike', apartmentController.getMightLike)
 
 export default apartmentRouter;
