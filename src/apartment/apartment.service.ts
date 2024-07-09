@@ -197,7 +197,7 @@ class ApartmentService {
             }
         });
     
-        console.log("Prompt Response:", JSON.stringify(promptResponse, null, 2)); // Log the prompt response
+        // console.log("Prompt Response:", JSON.stringify(promptResponse, null, 2)); 
     
         const results = promptResponse.matches
             .filter((match) => {
@@ -299,6 +299,7 @@ class ApartmentService {
         let finePrompt = await this.getFineTextEmbedding(prompt, rooms);
         let minRooms = 1
         let maxRooms = 100
+        console.log(rooms)
             switch (rooms) {
                 case('1 комн.'):
                     minRooms = 1;
@@ -317,8 +318,9 @@ class ApartmentService {
                     maxRooms = 4;
                     break;
         }
+        console.log(minRooms, maxRooms)
         const firstApartments = await this.generateEmbedding(finePrompt, classify, minPrice, maxPrice, minRooms, maxRooms);
-        console.log('First apartments:', firstApartments)
+        // console.log('First apartments:', firstApartments)
 
         const newPrompt = prompt + " " + rooms;
         const response = await openai.chat.completions.create({
