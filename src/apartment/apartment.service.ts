@@ -300,19 +300,19 @@ class ApartmentService {
         let minRooms = 1
         let maxRooms = 100
             switch (rooms) {
-                case('1-комн.'):
+                case('1 комн.'):
                     minRooms = 1;
                     maxRooms = 1;
                     break;
-                case('2-комн.'):
+                case('2 комн.'):
                     minRooms = 2;
                     maxRooms = 2;
                     break;
-                case('3-комн.'):
+                case('3 комн.'):
                     minRooms = 3;
                     maxRooms = 3;
                     break;
-                case('4-комн.'):
+                case('4 комн.'):
                     minRooms = 4;
                     maxRooms = 4;
                     break;
