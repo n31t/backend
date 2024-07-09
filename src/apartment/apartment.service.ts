@@ -229,16 +229,16 @@ class ApartmentService {
             case('1-4 комн.'):
                 rooms = '';
                 break;
-            case('1 комн.'):
+            case('1'):
                 rooms = '1-комн.';
                 break;
-            case('2 комн.'):
+            case('2'):
                 rooms = '2-комн.';
                 break;
-            case('3 комн.'):
+            case('3'):
                 rooms = '3-комн.';
                 break;
-            case('4 комн.'):
+            case('4'):
                 rooms = '4-комн.';
                 break;
         }
@@ -301,19 +301,19 @@ class ApartmentService {
         let maxRooms = 100
         console.log(rooms)
             switch (rooms) {
-                case('1 комн.'):
+                case('1'):
                     minRooms = 1;
                     maxRooms = 1;
                     break;
-                case('2 комн.'):
+                case('2'):
                     minRooms = 2;
                     maxRooms = 2;
                     break;
-                case('3 комн.'):
+                case('3'):
                     minRooms = 3;
                     maxRooms = 3;
                     break;
-                case('4 комн.'):
+                case('4'):
                     minRooms = 4;
                     maxRooms = 4;
                     break;
@@ -375,16 +375,16 @@ class ApartmentService {
             case('1-4 комн.'):
                 rooms = '';
                 break;
-            case('1 комн.'):
+            case('1'):
                 rooms = '1-комн.';
                 break;
-            case('2 комн.'):
+            case('2'):
                 rooms = '2-комн.';
                 break;
-            case('3 комн.'):
+            case('3'):
                 rooms = '3-комн.';
                 break;
-            case('4 комн.'):
+            case('4'):
                 rooms = '4-комн.';
                 break;
         }
