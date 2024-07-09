@@ -182,7 +182,7 @@ class ApartmentService {
     
     //     return results;
     // }
-    async generateEmbedding(prompt: string, classify: string, minPrice: number, maxPrice: number): Promise<any[]> {
+    async generateEmbedding(prompt: string, classify: string, minPrice: number, maxPrice: number, minRooms: number, maxRooms: number): Promise<any[]> {
         const embeddedPrompt = await new GoogleGenerativeAIEmbeddings().embedQuery(prompt);
         
         console.log("Embedded Prompt:", embeddedPrompt); 
@@ -200,7 +200,18 @@ class ApartmentService {
         console.log("Prompt Response:", JSON.stringify(promptResponse, null, 2)); // Log the prompt response
     
         const results = promptResponse.matches
-            .filter((match) => match.metadata && Number(match.metadata.price) >= minPrice && Number(match.metadata.price) <= maxPrice)
+            .filter((match) => {
+                if (!match.metadata) return false;
+                
+                const price = Number(match.metadata.price);
+                const floorInfo = match.metadata.floor.toString(); // Convert floorInfo to string
+
+                // Extract number of rooms from floor info
+                const roomsMatch = floorInfo.match(/(\d+)-комн/);
+                const rooms = roomsMatch ? parseInt(roomsMatch[1], 10) : null;
+
+                return price >= minPrice && price <= maxPrice && rooms !== null && rooms >= minRooms && rooms <= maxRooms;
+            })
             .slice(0, 40) // Take only the first 40 matches after filtering
             .map((match) => {
                 if (!match.metadata) {
@@ -286,7 +297,29 @@ class ApartmentService {
 
     async getRecommendations(prompt: string, classify: string, minPrice: number, maxPrice: number, rooms: string): Promise<any[]> {
         let finePrompt = await this.getFineTextEmbedding(prompt, rooms);
-        const firstApartments = await this.generateEmbedding(finePrompt, classify, minPrice, maxPrice);
+        let minRooms = 1
+        let maxRooms = 100
+        if(rooms != "") {
+            switch (rooms) {
+                case('1-комн.'):
+                    minRooms = 1;
+                    maxRooms = 1;
+                    break;
+                case('2-комн.'):
+                    minRooms = 2;
+                    maxRooms = 2;
+                    break;
+                case('3-комн.'):
+                    minRooms = 3;
+                    maxRooms = 3;
+                    break;
+                case('4-комн.'):
+                    minRooms = 4;
+                    maxRooms = 4;
+                    break;
+            }
+        }
+        const firstApartments = await this.generateEmbedding(finePrompt, classify, minPrice, maxPrice, minRooms, maxRooms);
         console.log('First apartments:', firstApartments)
 
         const newPrompt = prompt + " " + rooms;
@@ -355,9 +388,31 @@ class ApartmentService {
                 rooms = '4-комн.';
                 break;
         }
+        let minRooms = 1
+        let maxRooms = 100
+        if(rooms != "") {
+            switch (rooms) {
+                case('1-комн.'):
+                    minRooms = 1;
+                    maxRooms = 1;
+                    break;
+                case('2-комн.'):
+                    minRooms = 2;
+                    maxRooms = 2;
+                    break;
+                case('3-комн.'):
+                    minRooms = 3;
+                    maxRooms = 3;
+                    break;
+                case('4-комн.'):
+                    minRooms = 4;
+                    maxRooms = 4;
+                    break;
+            }
+        }
             
         const newPrompt = prompt + " " + rooms;
-        const apartments = await this.generateEmbedding(newPrompt, classify, minPrice, maxPrice);
+        const apartments = await this.generateEmbedding(newPrompt, classify, minPrice, maxPrice, minRooms, maxRooms);
         const results = apartments
         .slice(0, 30) // Take only the first 30 matches after filtering
         .map((apartment) => {
