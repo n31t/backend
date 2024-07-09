@@ -299,7 +299,6 @@ class ApartmentService {
         let finePrompt = await this.getFineTextEmbedding(prompt, rooms);
         let minRooms = 1
         let maxRooms = 100
-        if(rooms != "") {
             switch (rooms) {
                 case('1-комн.'):
                     minRooms = 1;
@@ -317,7 +316,6 @@ class ApartmentService {
                     minRooms = 4;
                     maxRooms = 4;
                     break;
-            }
         }
         const firstApartments = await this.generateEmbedding(finePrompt, classify, minPrice, maxPrice, minRooms, maxRooms);
         console.log('First apartments:', firstApartments)
