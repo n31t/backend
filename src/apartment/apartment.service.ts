@@ -322,7 +322,7 @@ class ApartmentService {
         const firstApartments = await this.generateEmbedding(finePrompt, classify, minPrice, maxPrice, minRooms, maxRooms);
         console.log('First apartments:', firstApartments)
 
-        const newPrompt = prompt + " " + rooms;
+        const newPrompt = prompt + " " + rooms+ "-комнатная";
         const response = await openai.chat.completions.create({
                     model: 'gpt-4o', //Maybe pomenayu na 4-o
                     messages: [
@@ -371,50 +371,35 @@ class ApartmentService {
     }
     
     getMightLikeApartments = async (prompt: string, classify: string, minPrice: number, maxPrice: number, rooms: string): Promise<any[]> => {
-        switch (rooms) {
-            case('1-4 комн.'):
-                rooms = '';
-                break;
-            case('1'):
-                rooms = '1-комн.';
-                break;
-            case('2'):
-                rooms = '2-комн.';
-                break;
-            case('3'):
-                rooms = '3-комн.';
-                break;
-            case('4'):
-                rooms = '4-комн.';
-                break;
-        }
         let minRooms = 1
         let maxRooms = 100
-        if(rooms != "") {
+        console.log(rooms)
             switch (rooms) {
-                case('1-комн.'):
+                case('1'):
                     minRooms = 1;
                     maxRooms = 1;
                     break;
-                case('2-комн.'):
+                case('2'):
                     minRooms = 2;
                     maxRooms = 2;
                     break;
-                case('3-комн.'):
+                case('3'):
                     minRooms = 3;
                     maxRooms = 3;
                     break;
-                case('4-комн.'):
+                case('4'):
                     minRooms = 4;
                     maxRooms = 4;
                     break;
-            }
         }
+        console.log(minRooms, maxRooms)
             
-        const newPrompt = prompt + " " + rooms;
-        const apartments = await this.generateEmbedding(newPrompt, classify, minPrice, maxPrice, minRooms, maxRooms);
+        const newPrompt = prompt + " " + rooms + "-комн";
+        const minPriceForFunc = 0;
+        const maxPriceForFunc = 1000000000;
+        const apartments = await this.generateEmbedding(newPrompt, classify, minPriceForFunc, maxPriceForFunc, minRooms, maxRooms);
         const results = apartments
-        .slice(0, 30) // Take only the first 30 matches after filtering
+        .slice(10, 50) // Take only the first 30 matches after filtering
         .map((apartment) => {
             if (!apartment.link) {
                 return null;
