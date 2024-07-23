@@ -20,7 +20,7 @@ class AuthController {
   }
 
   loginUser = async (req: Request, res: Response): Promise<void> => {
-    try {
+    // try {
       const { email, password } = req.body;
       const result = await this.authService.loginUser(email, password);
       if (!result) {
@@ -28,9 +28,9 @@ class AuthController {
         return;
       }
       res.status(200).json(result);
-    } catch (err) {
-      res.status(500).json({ message: 'Error logging in' });
-    }
+    // } catch (err) {
+    //   res.status(500).json({ message: 'Error logging in' });
+    // }
   }
 
   refreshToken = async (req: Request, res: Response): Promise<void> => {

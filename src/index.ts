@@ -3,7 +3,6 @@ import express from 'express';
 import globalRouter from './global-router';
 import { logger } from './logger';
 import http from 'http';
-import { wss } from './roadmap/roadmap.router';
 import cors from 'cors'
 
 const app = express();
