@@ -35,6 +35,11 @@ model User {
   username      String?
   password      String
   refreshTokens RefreshToken[]
+  phoneNumber   String?
+  name          String?
+  surname       String?
+  age           Int?
+  smallDescription String?
 }
 
 model RefreshToken {

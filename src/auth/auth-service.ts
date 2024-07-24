@@ -3,10 +3,11 @@ import { CreateUserDto } from './dtos/CreateUser.dto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+import { createClerkClient } from '@clerk/clerk-sdk-node';
 
 dotenv.config();
 
-
+const clerkClient = createClerkClient({secretKey: process.env.CLERK_API_KEY!});
 class AuthService {
   private readonly jwtSecret = process.env.JWT_SECRET!
   private readonly jwtRefreshSecret = process.env.JWT_REFRESH_SECRET!
@@ -84,6 +85,8 @@ class AuthService {
     const payload = this.verifyJwt(accessToken);
     if (!payload) return null;
 
+    if(!this.verifyRefreshToken(refreshToken)) return null;
+
     const user = await prisma.user.findUnique({ where: { id: payload.id } });
     if (!user) return null;
 
@@ -120,6 +123,54 @@ class AuthService {
 
     return { accessToken: newAccessToken, refreshToken: newRefreshToken };
   }
+
+  async loginWithGoogle(token: string): Promise<{ user: any, accessToken: string, refreshToken: string } | null> {
+    try {
+      const clerkUser = await clerkClient.users.getUser(token);
+      
+      if (!clerkUser) return null;
+
+      // Check if the user already exists in your database
+      let user = await prisma.user.findUnique({ where: { email: clerkUser.emailAddresses[0].emailAddress } });
+
+      if (!user) {
+        // If the user doesn't exist, create a new user in your database
+        user = await prisma.user.create({
+          data: {
+            email: clerkUser.emailAddresses[0].emailAddress,
+            username: clerkUser.username || (clerkUser.firstName ? clerkUser.firstName + clerkUser.lastName : ''),
+            password: '', // You might want to set a random password or handle this differently
+          },
+        });
+      }
+
+      const accessToken = this.generateJwt(user);
+      const refreshToken = this.generateRefreshToken(user);
+
+      await prisma.refreshToken.create({
+        data: {
+          token: refreshToken,
+          userId: user.id,
+        },
+      });
+
+      return { user, accessToken, refreshToken };
+    } catch (error) {
+      console.error('Error in Google login:', error);
+      return null;
+    }
+  }
+
+  async getUserIdByToken(token: string): Promise<any | null> {
+    const payload = this.verifyJwt(token);
+    if (!payload) return null;
+
+    const user = await prisma.user.findUnique({ where: { id: payload.id } });
+    if (!user) return null;
+
+    return { id: user.id};
+  }
+
 }
 
 export default AuthService;

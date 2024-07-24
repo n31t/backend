@@ -60,6 +60,42 @@ class AuthController {
       res.status(500).json({ message: 'Error checking tokens' });
     }
   }
+
+  loginWithGoogle = async (req: Request, res: Response) => {
+    try {
+    const { token } = req.body;
+    if (!token) {
+      return res.status(400).json({ message: 'Token is required' });
+    }
+
+    const result = await this.authService.loginWithGoogle(token);
+    if (!result) {
+      return res.status(401).json({ message: 'Invalid token or user not found' });
+    }
+
+    res.json(result);
+    } catch (err) {
+      res.status(500).json({ message: 'Error logging in with Google' });
+    }
+  }
+
+  getUserIdByToken = async (req: Request, res: Response) => {
+    try {
+      const { token } = req.body;
+      if (!token) {
+        return res.status(400).json({ message: 'Token is required' });
+      }
+
+      const result = await this.authService.getUserIdByToken(token);
+      if (!result) {
+        return res.status(401).json({ message: 'Invalid token or user not found' });
+      }
+
+      res.json(result);
+    } catch (err) {
+      res.status(500).json({ message: 'Error getting user id by token' });
+    }
+  }
 }
 
 export default AuthController;
