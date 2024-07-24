@@ -11,6 +11,7 @@ const authController = new AuthController(authService);
 authRouter.post('/register', authController.registerUser);
 authRouter.post('/login', authController.loginUser);
 authRouter.post('/refresh-token', authController.refreshToken);
+authRouter.post('/check-tokens', authController.checkBothTokens);
 
 // Example protected route
 authRouter.get('/protected', authMiddleware, (req, res) => {

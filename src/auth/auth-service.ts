@@ -70,6 +70,35 @@ class AuthService {
     }
   }
 
+  async verifyToken(token: string): Promise<any> {
+    const payload = this.verifyJwt(token);
+    if (!payload) return null;
+
+    const user = await prisma.user.findUnique({ where: { id: payload.id } });
+    if (!user) return null;
+
+    return user;
+  }
+
+  async checkBothTokens(accessToken: string, refreshToken: string): Promise<{ user: any, accessToken: string, refreshToken: string } | null> {
+    const payload = this.verifyJwt(accessToken);
+    if (!payload) return null;
+
+    const user = await prisma.user.findUnique({ where: { id: payload.id } });
+    if (!user) return null;
+
+    const isRefreshTokenValid = await prisma.refreshToken.findFirst({
+      where: {
+        token: refreshToken,
+        userId: user.id,
+      },
+    });
+
+    if (!isRefreshTokenValid) return null;
+
+    return { user, accessToken, refreshToken };
+  }
+
   async refreshToken(oldToken: string): Promise<{ accessToken: string, refreshToken: string } | null> {
     const payload = this.verifyRefreshToken(oldToken);
     if (!payload) return null;

@@ -46,6 +46,20 @@ class AuthController {
       res.status(500).json({ message: 'Error refreshing token' });
     }
   }
+
+  checkBothTokens = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { accessToken, refreshToken } = req.body;
+      const result = await this.authService.checkBothTokens(accessToken, refreshToken);
+      if (!result) {
+        res.status(401).json({ message: 'Invalid or expired tokens' });
+        return;
+      }
+      res.status(200).json(result);
+    } catch (err) {
+      res.status(500).json({ message: 'Error checking tokens' });
+    }
+  }
 }
 
 export default AuthController;
