@@ -13,7 +13,7 @@ authRouter.post('/login', authController.loginUser);
 authRouter.post('/refresh-token', authController.refreshToken);
 authRouter.post('/check-tokens', authController.checkBothTokens);
 
-authRouter.get('/userId-by-token', authController.getUserIdByToken);
+authRouter.post('/userId-by-token', authController.getUserIdByToken);
 
 authRouter.post('/google-login', authController.loginWithGoogle); // Add this line
 
