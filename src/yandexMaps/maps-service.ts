@@ -57,8 +57,13 @@ class MapsService {
     }
 
     async geocodeNotReadable(address: string): Promise<any> {
-        const newAddress = await this.createReadableAddress(address);
-        console.log('New address:', newAddress);
+        const newAddressResponse = await this.createReadableAddress(address);
+        console.log('New address response:', newAddressResponse);
+        
+        // Parse the JSON string to get the newAddress value
+        const newAddress = JSON.parse(newAddressResponse).newAddress;
+        console.log('Parsed new address:', newAddress);
+        
         return this.geocode(newAddress);
     }
 }
