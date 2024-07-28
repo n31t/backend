@@ -9,9 +9,9 @@ class MapsController {
     }
 
     async geocodeAddress(req: Request, res: Response) {
-        const { address } = req.body;
+        const { address, characteristics } = req.body;
         try {
-            const data = await this.mapsService.geocodeNotReadable(address);
+            const data = await this.mapsService.geocodeNotReadable(address, characteristics);
             res.status(200).json(data);
         } catch (error) {
             res.status(500).json({ error: 'Internal server error' });

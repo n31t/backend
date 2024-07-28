@@ -2,7 +2,11 @@ import openai from "../openai";
 
 
 class MapsService {
-    async createReadableAddress(address: string): Promise<string> {
+    async createReadableAddress(address: string, characteristics: { [key: string]: string }): Promise<string> {
+        const characteristicsString = Object.entries(characteristics)
+            .map(([key, value]) => `${key}: ${value}`)
+            .join(', ');
+
         const response = await openai.chat.completions.create({
             model: 'gpt-3.5-turbo',
             messages: [
@@ -10,17 +14,19 @@ class MapsService {
                     role: 'system',
                     content: `
                         Ты — географический информационный сервис Алматы, который идеально вычисляет улицы и дома.
-                        Тебе поступил запрос на адрес: ${address}, который может состоять из различной информации, такой как город, перекресток, район, улица, номер дома и т. д. Твоя задача - взять их этого запроса информацию о улице и (если есть) номере дома.
+                        Тебе поступил запрос на адрес: ${address}, который может состоять из различной информации, такой как город, перекресток, район, улица, номер дома и т. д. Твоя задача - взять из этого запроса информацию о улице и (если есть) номере дома, а также учесть дополнительные характеристики,в которых также может присутствовать Улица и Дом, сами характеристики: ${characteristicsString}.
                         Ответ должен быть строго в формате JSON, без каких-либо других сообщений.
                         JSON ответ должен выглядеть следующим образом:
                         {
-                            
-                                "newAddress": "Аносова 30"
-                            
+                            "newAddress": "Аносова 30"
                         }
-                        Входные данные, будут представлены в виде строки, которую ты должен обработать и вернуть в формате JSON:
+                        Входные данные будут представлены в виде строки, которую ты должен обработать и вернуть в формате JSON:
                         {
-                            address: "Алматы, Аносова 30 - Алмалинский район"
+                            address: "Алматы, Аносова 30 - Алмалинский район",
+                            characteristics: {
+                                Улица: "Аносова",
+                                дом: "30"
+                            }
                         }
                     `
                 },
@@ -28,6 +34,7 @@ class MapsService {
                     role: 'user',
                     content: `
                     Запрос пользователя: ${address}
+                    Характеристики: ${characteristicsString}
                     `
                 }
             ],
@@ -56,8 +63,8 @@ class MapsService {
           return data;
     }
 
-    async geocodeNotReadable(address: string): Promise<any> {
-        const newAddressResponse = await this.createReadableAddress(address);
+    async geocodeNotReadable(address: string, characteristics: { [key: string]: string }): Promise<any> {
+        const newAddressResponse = await this.createReadableAddress(address, characteristics);
         console.log('New address response:', newAddressResponse);
         
         // Parse the JSON string to get the newAddress value
