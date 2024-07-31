@@ -11,8 +11,8 @@ const redisConnection = new Redis(redisUrl, {
 
 class WhatsappService {
     async addApartmentAndUserToQueue(apartment: Apartment, user: User) {
-        apartment.number = "87085340835"
-        user.phoneNumber = "+7 (708) 534 0835"
+        // apartment.number = "87085340835"
+        // user.phoneNumber = "+7 (708) 534 0835"
         let apartmentNumber = apartment.number.replace(/\D/g, '');
 
         if(user.phoneNumber === null) throw new Error('Phone number must be provided');
