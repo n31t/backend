@@ -26,24 +26,20 @@ app.listen(PORT, () => {
 }
 );
 
+// import pinecone from './pinecone';
+
+// async function deleteAllVectors() {
+//     if (!process.env.PINECONE_INDEX_NAME) {
+//         throw new Error('PINECONE_INDEX_NAME environment variable is not set');
+//     }
+    
+//     const index = pinecone.index(process.env.PINECONE_INDEX_NAME);
+//     await index.deleteAll();
+// }
+
+// deleteAllVectors();
 
 
-
-// const server = http.createServer(app);
-
-// // Handle WebSocket connections with origin validation
-// server.on('upgrade', (request, socket, head) => {
-//   const origin = request.headers.origin;
-//   console.log(`Origin: ${origin}`);
-//   // Validate the origin before proceeding
-//   if (origin === 'https://websockets-example.vercel.app') {
-//     wss.handleUpgrade(request, socket, head, (ws) => {
-//       wss.emit('connection', ws, request);
-//     });
-//   } else {
-//     socket.destroy();
-//   }
-// });
 
 // server.listen(PORT, () => {
 //   console.log(`Server runs at http://localhost:${PORT}`);

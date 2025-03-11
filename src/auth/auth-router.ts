@@ -15,7 +15,7 @@ authRouter.post('/check-tokens', authController.checkBothTokens);
 
 authRouter.post('/userId-by-token', authController.getUserIdByToken);
 
-authRouter.post('/google-login', authController.loginWithGoogle); // Add this line
+// authRouter.post('/google-login', authController.loginWithGoogle); // Add this line
 
 
 // Example protected route
